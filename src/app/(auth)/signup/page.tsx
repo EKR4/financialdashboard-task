@@ -1,9 +1,27 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+
+// Isolated client component that uses useSearchParams
+const ParamsHandler = () => {
+  const searchParams = useSearchParams();
+  const [params, setParams] = useState<{
+    error?: string;
+    errorDescription?: string;
+  }>({});
+  
+  useEffect(() => {
+    setParams({
+      error: searchParams.get('error') || undefined,
+      errorDescription: searchParams.get('error_description') || undefined,
+    });
+  }, [searchParams]);
+  
+  return { params };
+};
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -12,17 +30,6 @@ export default function SignupPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [formError, setFormError] = useState('');
   const [emailSent, setEmailSent] = useState(false);
-  const searchParams = useSearchParams();
-  
-  useEffect(() => {
-    // Check for auth errors in URL params (e.g., from auth callback)
-    const error = searchParams.get('error');
-    const errorDescription = searchParams.get('error_description');
-    
-    if (error) {
-      setFormError(`Authentication error: ${errorDescription || error}`);
-    }
-  }, [searchParams]);
   const { signUp, loading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,8 +67,24 @@ export default function SignupPage() {
     }
   };
 
+  // Component that handles URL params
+  const SearchParamsEffect = () => {
+    const { params } = ParamsHandler();
+    
+    useEffect(() => {
+      if (params.error) {
+        setFormError(`Authentication error: ${params.errorDescription || params.error}`);
+      }
+    }, [params]);
+
+    return null;
+  };
+
   return (
     <div className="flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
+      <Suspense fallback={<div>Loading...</div>}>
+        <SearchParamsEffect />
+      </Suspense>
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h1 className="text-center text-3xl font-bold text-gray-900 dark:text-white">FinDash</h1>
         <h2 className="mt-6 text-center text-2xl font-semibold text-gray-900 dark:text-white">
@@ -81,7 +104,7 @@ export default function SignupPage() {
             {emailSent && (
               <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 rounded-md p-4 text-sm">
                 <h3 className="font-semibold text-base mb-2">Verification Email Sent!</h3>
-                <p>We've sent a confirmation link to <strong>{email}</strong></p>
+                <p>We`ve sent a confirmation link to <strong>{email}</strong></p>
                 <p className="mt-2">Please check your inbox (and spam folder) and click the confirmation link to activate your account.</p>
                 <div className="mt-3 flex items-center justify-between">
                   <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium text-sm">

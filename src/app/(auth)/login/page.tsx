@@ -1,41 +1,46 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { User } from '@/types';
 
+// Isolated client component that uses useSearchParams
+const ParamsHandler = () => {
+  const searchParams = useSearchParams();
+  const [params, setParams] = useState<{
+    error?: string;
+    errorDescription?: string;
+    emailConfirmed?: string;
+  }>({});
+  
+  useEffect(() => {
+    setParams({
+      error: searchParams.get('error') || undefined,
+      errorDescription: searchParams.get('error_description') || undefined,
+      emailConfirmed: searchParams.get('email_confirmed') || undefined,
+    });
+  }, [searchParams]);
+  
+  return { params };
+};
+
+// Main component
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState('');
   const router = useRouter();
   const { signIn, loading, user } = useAuth();
-  const searchParams = useSearchParams();
-  
-  // Check for auth callback parameters
+
+  // Client-side redirection if user is already authenticated
   useEffect(() => {
-    // If user is already authenticated, redirect to dashboard
     if (user) {
       router.replace('/dashboard');
-      return;
     }
-    
-    // Check for error or success from auth callback
-    const error = searchParams.get('error');
-    const errorDescription = searchParams.get('error_description');
-    
-    if (error) {
-      setFormError(`Authentication error: ${errorDescription || error}`);
-    }
-    
-    // Check for email confirmation success
-    const emailConfirmSuccess = searchParams.get('email_confirmed');
-    if (emailConfirmSuccess === 'true') {
-      setFormError('Email confirmed successfully! You can now log in.');
-    }
-  }, [searchParams, user, router]);
-
+  }, [user, router]);
+  
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormError('');
@@ -71,8 +76,29 @@ export default function LoginPage() {
     }
   };
 
+  // Component that handles URL params
+  const SearchParamsEffect = () => {
+    const { params } = ParamsHandler();
+    
+    useEffect(() => {
+      if (params.error) {
+        setFormError(`Authentication error: ${params.errorDescription || params.error}`);
+      }
+      
+      if (params.emailConfirmed === 'true') {
+        setFormError('Email confirmed successfully! You can now log in.');
+      }
+    }, [params]);
+
+    return null;
+  };
+
   return (
     <div className="flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
+      <Suspense fallback={<div>Loading...</div>}>
+        <SearchParamsEffect />
+      </Suspense>
+      
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h1 className="text-center text-3xl font-bold text-gray-900 dark:text-white">FinDash</h1>
         <h2 className="mt-6 text-center text-2xl font-semibold text-gray-900 dark:text-white">

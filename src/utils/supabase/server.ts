@@ -1,1 +1,0 @@
-// This file is intentionally empty - direct Supabase client used in API routes instead
