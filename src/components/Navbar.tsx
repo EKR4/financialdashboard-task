@@ -1,44 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { supabase } from '@/lib/supabase';
-import { User } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Navbar() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          const { id, email, created_at } = session.user;
-          setUser({ id, email: email || '', created_at: created_at || '', updated_at: '' });
-        } else {
-          setUser(null);
-        }
-      }
-    );
-
-    // Check current session
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session?.user) {
-        const { id, email, created_at } = data.session.user;
-        setUser({ id, email: email || '', created_at: created_at || '', updated_at: '' });
-      }
-    };
-    
-    checkUser();
-    
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
-  }, []);
-
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    await signOut();
     window.location.href = '/login';
   };
 

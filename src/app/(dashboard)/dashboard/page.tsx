@@ -1,15 +1,76 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useBalances } from '@/hooks/useBalances';
+import { useAuth } from '@/hooks/useAuth';
 import BalanceCard from '@/components/BalanceCard';
+import { createSampleAccounts, createSampleTransactions } from '@/utils/accountHelpers';
+import Notification, { NotificationType } from '@/components/Notification';
 
 export default function Dashboard() {
   const {
     mpesa, sbm, coop,
     fetchMpesa, fetchSbm, fetchCoop,
-    totalBalance
+    totalBalance,
+    transactions
   } = useBalances();
+  const { user } = useAuth();
+  const [dataInitialized, setDataInitialized] = useState(false);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    type: NotificationType;
+    message: string;
+  }>({
+    show: false,
+    type: 'info',
+    message: ''
+  });
+
+  // Check if user has any accounts and create sample data if needed
+  useEffect(() => {
+    if (user && !dataInitialized) {
+      const checkAndCreateSampleData = async () => {
+        // Check if we have any account data already
+        const hasNoAccounts = !mpesa.data && !sbm.data && !coop.data && 
+                              !mpesa.loading && !sbm.loading && !coop.loading;
+        
+        if (hasNoAccounts) {
+          try {
+            // Create sample accounts
+            const accountsCreated = await createSampleAccounts(user.id);
+            
+            if (accountsCreated) {
+              // Create sample transactions
+              await createSampleTransactions(user.id);
+              
+              // Show notification
+              setNotification({
+                show: true,
+                type: 'success',
+                message: 'Sample accounts created for demonstration'
+              });
+              
+              // Refresh all data
+              fetchMpesa();
+              fetchSbm();
+              fetchCoop();
+            }
+          } catch (error) {
+            console.error("Error creating sample data:", error);
+          }
+        }
+        
+        setDataInitialized(true);
+      };
+      
+      checkAndCreateSampleData();
+    }
+  }, [user, mpesa.data, sbm.data, coop.data, mpesa.loading, sbm.loading, coop.loading, 
+      dataInitialized, fetchMpesa, fetchSbm, fetchCoop]);
+  
+  const closeNotification = () => {
+    setNotification(prev => ({ ...prev, show: false }));
+  };
 
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-US', {
@@ -21,6 +82,14 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-7xl mx-auto">
+      {/* Notification */}
+      <Notification
+        show={notification.show}
+        type={notification.type}
+        message={notification.message}
+        onClose={closeNotification}
+      />
+      
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Financial Dashboard</h1>
         <p className="text-gray-500 dark:text-gray-400 mt-1">

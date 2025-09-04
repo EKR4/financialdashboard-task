@@ -46,9 +46,27 @@ export default function AccountsPage() {
     try {
       setIsUnlinking(accountType);
       
-      // In a real app, this would delete the account from the database
-      // For now, we'll just simulate a delay and show a success message
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Get the user's account from Supabase
+      const { data: account, error: accountError } = await supabase
+        .from('accounts')
+        .select('id')
+        .eq('account_type', accountType)
+        .eq('is_active', true)
+        .single();
+      
+      if (accountError || !account) {
+        throw new Error('Account not found');
+      }
+      
+      // Update the account to inactive
+      const { error: updateError } = await supabase
+        .from('accounts')
+        .update({ is_active: false })
+        .eq('id', account.id);
+      
+      if (updateError) {
+        throw updateError;
+      }
       
       showNotification('success', `${getAccountTypeLabel(accountType)} unlinked successfully`);
       
@@ -66,9 +84,59 @@ export default function AccountsPage() {
 
   const handleAddAccount = async (accountType: string, accountNumber: string, additionalData?: Record<string, string>) => {
     try {
-      // In a real app, this would create a new account in the database
-      // For now, we'll just simulate a delay and show a success message
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Get current user
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        return Promise.reject(new Error('Not authenticated'));
+      }
+      
+      // Check if account already exists
+      const { data: existingAccount } = await supabase
+        .from('accounts')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .eq('account_type', accountType)
+        .eq('account_number', accountNumber)
+        .eq('is_active', true)
+        .maybeSingle();
+      
+      if (existingAccount) {
+        return Promise.reject(new Error('This account is already linked'));
+      }
+      
+      // Insert the new account
+      const { data: newAccount, error: accountError } = await supabase
+        .from('accounts')
+        .insert({
+          user_id: session.user.id,
+          account_type: accountType,
+          account_number: accountNumber,
+          additional_data: additionalData || {},
+          is_active: true
+        })
+        .select('id')
+        .single();
+      
+      if (accountError || !newAccount) {
+        throw accountError || new Error('Failed to create account');
+      }
+      
+      // Create initial balance entry
+      const { error: balanceError } = await supabase
+        .from('balances')
+        .insert({
+          account_id: newAccount.id,
+          amount: 0, // Initial balance
+          currency: 'KES',
+          last_updated: new Date().toISOString()
+        });
+      
+      if (balanceError) {
+        // If balance creation fails, remove the account
+        await supabase.from('accounts').delete().eq('id', newAccount.id);
+        throw balanceError;
+      }
       
       showNotification('success', `${getAccountTypeLabel(accountType)} linked successfully`);
       

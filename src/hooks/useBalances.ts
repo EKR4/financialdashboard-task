@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MpesaBalance, SbmBalance, CoopBalance } from '@/types';
+import { createClient } from '@/utils/supabase/client';
+import { useAuth } from './useAuth';
 
 interface BalancesState {
   mpesa: {
@@ -22,21 +24,43 @@ interface BalancesState {
   };
 }
 
+interface TransactionsState {
+  loading: boolean;
+  error: string | null;
+  data: {
+    accountId: string;
+    date: string;
+    description: string;
+    amount: number;
+    type: 'credit' | 'debit';
+    reference: string;
+  }[];
+}
+
 interface UseBalancesReturn extends BalancesState {
   fetchMpesa: () => Promise<void>;
   fetchSbm: () => Promise<void>;
   fetchCoop: () => Promise<void>;
   fetchAll: () => Promise<void>;
   totalBalance: number;
+  transactions: TransactionsState;
+  fetchTransactions: () => Promise<void>;
 }
 
 export function useBalances(): UseBalancesReturn {
+  const { user } = useAuth();
+  const supabase = createClient();
   const [balances, setBalances] = useState<BalancesState>({
     mpesa: { data: null, loading: false, error: null, lastUpdated: null },
     sbm: { data: null, loading: false, error: null, lastUpdated: null },
     coop: { data: null, loading: false, error: null, lastUpdated: null },
   });
-
+  
+  const [transactions, setTransactions] = useState<TransactionsState>({
+    loading: false,
+    error: null,
+    data: []
+  });
   const fetchMpesa = useCallback(async () => {
     try {
       setBalances(prev => ({
@@ -152,11 +176,86 @@ export function useBalances(): UseBalancesReturn {
       fetchCoop()
     ]);
   }, [fetchMpesa, fetchSbm, fetchCoop]);
+  
+  const fetchTransactions = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      setTransactions(prev => ({
+        ...prev,
+        loading: true,
+        error: null
+      }));
+      
+      // Get all active accounts for the current user
+      const { data: accounts, error: accountsError } = await supabase
+        .from('accounts')
+        .select('id, account_type, account_number')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+      
+      if (accountsError) throw accountsError;
+      
+      if (!accounts || accounts.length === 0) {
+        setTransactions({
+          loading: false,
+          error: null,
+          data: []
+        });
+        return;
+      }
+      
+      // Get recent transactions for these accounts
+      const accountIds = accounts.map(account => account.id);
+      const { data: transactionsData, error: transactionsError } = await supabase
+        .from('transactions')
+        .select('*')
+        .in('account_id', accountIds)
+        .order('date', { ascending: false })
+        .limit(20);
+      
+      if (transactionsError) throw transactionsError;
+      
+      // Format transactions for display
+      const formattedTransactions = transactionsData.map(transaction => {
+        const account = accounts.find(a => a.id === transaction.account_id);
+        return {
+          accountId: transaction.account_id,
+          accountType: account?.account_type || 'unknown',
+          accountNumber: account?.account_number || 'unknown',
+          date: transaction.date,
+          description: transaction.description,
+          amount: transaction.amount,
+          type: transaction.type,
+          reference: transaction.reference_number || '',
+        };
+      });
+      
+      setTransactions({
+        loading: false,
+        error: null,
+        data: formattedTransactions
+      });
+    } catch (error: any) {
+      setTransactions({
+        loading: false,
+        error: error.message || 'Failed to fetch transactions',
+        data: []
+      });
+    }
+  }, [user, supabase]);
 
   // Initial fetch on component mount
   useEffect(() => {
     fetchAll();
   }, [fetchAll]);
+  
+  // Fetch transactions when user changes
+  useEffect(() => {
+    if (user) {
+      fetchTransactions();
+    }
+  }, [user, fetchTransactions]);
 
   // Calculate total balance across all accounts
   const totalBalance = [
@@ -171,6 +270,8 @@ export function useBalances(): UseBalancesReturn {
     fetchSbm,
     fetchCoop,
     fetchAll,
-    totalBalance
+    totalBalance,
+    transactions,
+    fetchTransactions
   };
 }
