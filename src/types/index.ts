@@ -1,11 +1,16 @@
 export interface User {
   id: string;
   email: string;
-  phone_number?: string;
   created_at: string;
   updated_at: string;
+  fullName?: string;
+  phoneNumber?: string;
+  avatarUrl?: string;
+  currencyPreference?: string;
+  themePreference?: 'system' | 'light' | 'dark';
 }
 
+// Kept for backward compatibility - User now contains profile fields
 export interface Profile {
   id: string;
   user_id: string;

@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { User } from '@/types';
 
 // Isolated client component that uses useSearchParams
 const ParamsHandler = () => {
