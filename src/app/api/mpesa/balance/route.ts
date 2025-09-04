@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { MpesaBalance, ApiResponse } from '@/types';
-import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 // Simulate network delay for API-like behavior
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -11,7 +10,11 @@ export async function GET() {
     // Simulate a network delay (300-800ms) to mimic an API call
     await delay(Math.floor(Math.random() * 500) + 300);
     
-    const supabase = createClient();
+    // Create a direct Supabase client for API routes
+    const supabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
     
     // Get user session
     const { data: { session } } = await supabase.auth.getSession();

@@ -89,8 +89,8 @@ export function useAuth(): UseAuthReturn {
       }
 
       return { error: null };
-    } catch (error: any) {
-      const errorMessage = error.message || 'An error occurred during sign in';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred during sign in';
       setError({ message: errorMessage });
       return { error: { message: errorMessage } };
     } finally {
@@ -125,8 +125,8 @@ export function useAuth(): UseAuthReturn {
       }
 
       return { error: null };
-    } catch (error: any) {
-      const errorMessage = error.message || 'An error occurred during sign up';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred during sign up';
       setError({ message: errorMessage });
       return { error: { message: errorMessage } };
     } finally {
@@ -140,9 +140,9 @@ export function useAuth(): UseAuthReturn {
       setError(null);
       await supabase.auth.signOut();
       setUser(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error signing out:', error);
-      setError({ message: error.message || 'Failed to sign out' });
+      setError({ message: error instanceof Error ? error.message : 'Failed to sign out' });
     } finally {
       setLoading(false);
     }

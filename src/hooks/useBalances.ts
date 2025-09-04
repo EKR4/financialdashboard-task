@@ -85,13 +85,13 @@ export function useBalances(): UseBalancesReturn {
           lastUpdated: new Date() 
         }
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       setBalances(prev => ({
         ...prev,
         mpesa: { 
           ...prev.mpesa, 
           loading: false, 
-          error: error.message || 'An error occurred' 
+          error: error instanceof Error ? error.message : 'An error occurred' 
         }
       }));
     }
@@ -121,13 +121,13 @@ export function useBalances(): UseBalancesReturn {
           lastUpdated: new Date() 
         }
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       setBalances(prev => ({
         ...prev,
         sbm: { 
           ...prev.sbm, 
           loading: false, 
-          error: error.message || 'An error occurred' 
+          error: error instanceof Error ? error.message : 'An error occurred' 
         }
       }));
     }
@@ -157,13 +157,13 @@ export function useBalances(): UseBalancesReturn {
           lastUpdated: new Date() 
         }
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       setBalances(prev => ({
         ...prev,
         coop: { 
           ...prev.coop, 
           loading: false, 
-          error: error.message || 'An error occurred' 
+          error: error instanceof Error ? error.message : 'An error occurred' 
         }
       }));
     }
@@ -236,10 +236,10 @@ export function useBalances(): UseBalancesReturn {
         error: null,
         data: formattedTransactions
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       setTransactions({
         loading: false,
-        error: error.message || 'Failed to fetch transactions',
+        error: error instanceof Error ? error.message : 'Failed to fetch transactions',
         data: []
       });
     }
