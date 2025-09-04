@@ -11,8 +11,7 @@ export default function Dashboard() {
   const {
     mpesa, sbm, coop,
     fetchMpesa, fetchSbm, fetchCoop,
-    totalBalance,
-    transactions
+    totalBalance
   } = useBalances();
   const { user } = useAuth();
   const [dataInitialized, setDataInitialized] = useState(false);

@@ -37,8 +37,8 @@ export default function TransactionsPage() {
       setIsRefreshing(true);
       await fetchTransactions();
       showNotification('success', 'Transactions refreshed successfully');
-    } catch (error: any) {
-      showNotification('error', `Failed to refresh transactions: ${error.message || 'Unknown error'}`);
+    } catch (error: unknown) {
+      showNotification('error', `Failed to refresh transactions: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsRefreshing(false);
     }
@@ -80,9 +80,9 @@ export default function TransactionsPage() {
       }
       
       showNotification('success', `Transactions exported successfully as ${format.toUpperCase()}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Export error:', error);
-      showNotification('error', `Failed to export: ${error.message || 'Unknown error'}`);
+      showNotification('error', `Failed to export: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
   const formatCurrency = (amount: number): string => {

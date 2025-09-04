@@ -65,9 +65,9 @@ export default function LoginPage() {
           router.replace('/dashboard');
         }, 500);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Login error:', err);
-      setFormError(err?.message || 'An unexpected error occurred during login');
+      setFormError(err instanceof Error ? err.message : 'An unexpected error occurred during login');
     }
   };
 
@@ -149,7 +149,7 @@ export default function LoginPage() {
             <div className="mt-6 grid grid-cols-1 gap-3">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-                  Don't have an account?{' '}
+                  Don&apos;t have an account?{' '}
                   <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
                     Sign up
                   </Link>

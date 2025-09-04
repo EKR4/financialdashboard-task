@@ -44,7 +44,7 @@ export default function AuthCallbackPage() {
           // No session means auth failed or was not completed
           router.replace('/login?error=Authentication failed');
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Auth callback error:', err);
         router.replace('/login?error=Unexpected error during authentication');
       }

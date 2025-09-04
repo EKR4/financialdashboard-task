@@ -2,7 +2,7 @@
 
 import { useState, FormEvent, ChangeEvent } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useSettings, Settings } from '@/hooks/useSettings';
+import { useSettings } from '@/hooks/useSettings';
 import Notification, { NotificationType } from '@/components/Notification';
 
 export default function SettingsPage() {
@@ -168,8 +168,8 @@ export default function SettingsPage() {
       } else {
         showNotification('error', error || 'Failed to update profile');
       }
-    } catch (error: any) {
-      showNotification('error', error.message || 'An error occurred');
+    } catch (error: unknown) {
+      showNotification('error', error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -190,8 +190,8 @@ export default function SettingsPage() {
       } else {
         showNotification('error', error || 'Failed to update account preferences');
       }
-    } catch (error: any) {
-      showNotification('error', error.message || 'An error occurred');
+    } catch (error: unknown) {
+      showNotification('error', error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -213,8 +213,8 @@ export default function SettingsPage() {
       } else {
         showNotification('error', error || 'Failed to update notification settings');
       }
-    } catch (error: any) {
-      showNotification('error', error.message || 'An error occurred');
+    } catch (error: unknown) {
+      showNotification('error', error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -245,8 +245,8 @@ export default function SettingsPage() {
       } else {
         showNotification('error', error || 'Failed to update password');
       }
-    } catch (error: any) {
-      showNotification('error', error.message || 'An error occurred');
+    } catch (error: unknown) {
+      showNotification('error', error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsSubmitting(false);
     }

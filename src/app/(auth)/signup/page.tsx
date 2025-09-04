@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function SignupPage() {
@@ -12,7 +12,6 @@ export default function SignupPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [formError, setFormError] = useState('');
   const [emailSent, setEmailSent] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
   
   useEffect(() => {
@@ -55,9 +54,9 @@ export default function SignupPage() {
         
         // Don't redirect automatically - user needs to confirm their email first
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Signup error:', err);
-      setFormError(err?.message || 'An unexpected error occurred during signup');
+      setFormError(err instanceof Error ? err.message : 'An unexpected error occurred during signup');
     }
   };
 

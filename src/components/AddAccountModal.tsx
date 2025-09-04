@@ -37,8 +37,8 @@ export default function AddAccountModal({
       setAccountNumber('');
       setAdditionalData({});
       onClose();
-    } catch (err: any) {
-      setError(err.message || 'Failed to add account');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to add account');
     } finally {
       setIsSubmitting(false);
     }

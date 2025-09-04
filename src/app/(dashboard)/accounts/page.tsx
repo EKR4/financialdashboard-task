@@ -75,8 +75,8 @@ export default function AccountsPage() {
       else if (accountType === 'sbm') await fetchSbm();
       else if (accountType === 'coop') await fetchCoop();
       
-    } catch (error: any) {
-      showNotification('error', `Failed to unlink account: ${error.message || 'Unknown error'}`);
+    } catch (error: unknown) {
+      showNotification('error', `Failed to unlink account: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsUnlinking(null);
     }
@@ -146,8 +146,8 @@ export default function AccountsPage() {
       else if (accountType === 'coop') await fetchCoop();
       
       return Promise.resolve();
-    } catch (error: any) {
-      return Promise.reject(error);
+    } catch (error: unknown) {
+      return Promise.reject(error instanceof Error ? error : new Error('Failed to link account'));
     }
   };
 
