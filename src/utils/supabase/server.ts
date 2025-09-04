@@ -1,4 +1,4 @@
-// @ts-nocheck - Ignoring type errors for cookies API
+// Note: Some type issues might occur with cookies API usage
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 

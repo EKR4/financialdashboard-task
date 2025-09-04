@@ -114,9 +114,9 @@ export function useSettings(): UseSettingsReturn {
             largeTransactionThreshold: settingsData?.large_transaction_threshold || 10000,
           }
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching settings:', err);
-        setError(err.message || 'Failed to fetch settings');
+        setError(err instanceof Error ? err.message : 'Failed to fetch settings');
       } finally {
         setLoading(false);
       }
@@ -157,10 +157,11 @@ export function useSettings(): UseSettingsReturn {
       }));
       
       return { success: true };
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error updating profile:', err);
-      setError(err.message || 'Failed to update profile');
-      return { success: false, error: err.message || 'Failed to update profile' };
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -196,10 +197,11 @@ export function useSettings(): UseSettingsReturn {
       }));
       
       return { success: true };
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error updating account preferences:', err);
-      setError(err.message || 'Failed to update account preferences');
-      return { success: false, error: err.message || 'Failed to update account preferences' };
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update account preferences';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -238,10 +240,11 @@ export function useSettings(): UseSettingsReturn {
       }));
       
       return { success: true };
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error updating notification settings:', err);
-      setError(err.message || 'Failed to update notification settings');
-      return { success: false, error: err.message || 'Failed to update notification settings' };
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update notification settings';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -276,10 +279,11 @@ export function useSettings(): UseSettingsReturn {
       if (error) throw error;
       
       return { success: true };
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error updating password:', err);
-      setError(err.message || 'Failed to update password');
-      return { success: false, error: err.message || 'Failed to update password' };
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update password';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
